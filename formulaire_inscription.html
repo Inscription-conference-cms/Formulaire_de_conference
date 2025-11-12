@@ -7,15 +7,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
         (function(){
-            emailjs.init("feDBBh8cq_Can9Bpi");
+            emailjs.init('MS_zSmEpFxLlQPwRd');
         })();
 
         function envoyerEmail(e) {
             e.preventDefault();
             
-            let serviceID = "service_qwlbv1k";
-            let templateID = "template_5w0ezmf";
-
+            const serviceID = 'service_7wzu2s3';
+            const templateID = 'template_zlfy3of';
+            
             const form = e.target;
             const submitBtn = form.querySelector('button[type="submit"]');
             
@@ -25,20 +25,55 @@
             }
 
             console.log("=== ENVOI VIA EMAILJS ===");
-            const formData = new FormData(form);
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}: ${value}`);
-            }
+            console.log("Service ID:", serviceID);
+            console.log("Template ID:", templateID);
+            console.log("URL actuelle:", window.location.href);
+            console.log("Origine:", window.location.origin);
+            
+            // Récupérer les données du formulaire
+            const templateParams = {
+                to_email: 'conference@cm6-microfinance.ma',
+                nom: form.nom.value,
+                prenom: form.prenom.value,
+                email: form.email.value,
+                telephone: form.telephone.value,
+                entreprise: form.entreprise.value || 'Non renseigné',
+                poste: form.poste.value || 'Non renseigné',
+                participation: form.participation.value
+            };
+            
+            console.log("Données envoyées:");
+            console.log(JSON.stringify(templateParams, null, 2));
 
-            emailjs.sendForm(serviceID, templateID, form)
+            emailjs.send(serviceID, templateID, templateParams)
                 .then((response) => {
-                    console.log("✅ Succès!", response.status, response.text);
-                    alert("✅ Merci ! Votre inscription a bien été envoyée.");
+                    console.log("✅ SUCCÈS EMAILJS!");
+                    console.log("Status:", response.status);
+                    console.log("Text:", response.text);
+                    console.log("Message ID:", response.id || 'N/A');
+                    alert("✅ Merci ! Votre inscription a bien été envoyée à conference@cm6-microfinance.ma");
                     form.reset();
                 })
                 .catch((error) => {
-                    console.error("❌ Erreur:", error);
-                    alert("❌ Une erreur est survenue. Veuillez réessayer.");
+                    console.error("❌ ERREUR COMPLÈTE:", error);
+                    console.error("Status:", error.status);
+                    console.error("Text:", error.text);
+                    
+                    let errorMsg = "❌ Une erreur est survenue. ";
+                    
+                    if (error.status === 400) {
+                        errorMsg += "Erreur 400: Template non trouvé. Vérifiez le Template ID.";
+                    } else if (error.status === 403) {
+                        errorMsg += "Erreur 403: Domaine non autorisé. Ajoutez " + window.location.origin + " dans EmailJS > Account > Allowed Origins.";
+                    } else if (error.status === 412) {
+                        errorMsg += "Erreur 412: Service email non configuré correctement.";
+                    } else if (error.text && error.text.includes('origin')) {
+                        errorMsg += "Erreur CORS: Ajoutez " + window.location.origin + " dans EmailJS > Account > Allowed Origins.";
+                    } else {
+                        errorMsg += "Code: " + (error.status || 'inconnu');
+                    }
+                    
+                    alert(errorMsg);
                 })
                 .finally(() => {
                     if (submitBtn) { 
@@ -363,6 +398,9 @@
                     <h2>Inscription</h2>
                     <p>Remplissez le formulaire pour réserver votre place</p>
                 </div>
+
+                <!-- Champ caché pour la destination email -->
+                <input type="hidden" name="to_email" value="conference@cm6-microfinance.ma">
 
                 <div class="form-row">
                     <div class="form-group">
